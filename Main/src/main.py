@@ -59,7 +59,7 @@ from vex import *
 
 data1 = [] 
 
-#endregion dat
+#endregion data
 
 SPEED = 30
 REFRESH_IN_HERTZ = 300 #--> 5 a second
