@@ -124,7 +124,7 @@ Thread(prt)
 #region manual driving def
 
 #region lift
-def loop():
+def lift():
     while True:
         mot_lift_l_s = mot_lift_r_s = controller_1.axis2.position()*0.8
         deg = lift_inert.orientation(OrientationType.PITCH,DEGREES)
@@ -139,11 +139,11 @@ def loop():
 
         wait(REFRESH, SECONDS)
 
-Thread(loop)
+Thread(lift)
 #endregion lift
 
 #region intake
-def loop():
+def intake():
     while True:
         speed = 0
         if controller_1.buttonR1.pressing():
@@ -154,7 +154,7 @@ def loop():
         mot_intake.set_velocity(speed)
         sleep(100)
 
-Thread(loop)
+Thread(intake)
 #endregion intake
 
 def forback():
