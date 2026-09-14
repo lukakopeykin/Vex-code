@@ -11,6 +11,7 @@ mot_lf = Motor(Ports.PORT1, GearSetting.RATIO_18_1, True)
 mot_rf = Motor(Ports.PORT10, GearSetting.RATIO_18_1, False)
 mot_lb = Motor(Ports.PORT11, GearSetting.RATIO_18_1, True)
 mot_rb = Motor(Ports.PORT20, GearSetting.RATIO_18_1, False)
+mot_intake = Motor(Ports.PORT12, GearSetting.RATIO_36_1, False)
 controller_1 = Controller(PRIMARY)
 lift_inert = Inertial(Ports.PORT2)
 mot_lift_l = Motor(Ports.PORT5, GearSetting.RATIO_18_1, True)
@@ -140,6 +141,21 @@ def loop():
 
 Thread(loop)
 #endregion lift
+
+#region intake
+def loop():
+    while True:
+        speed = 0
+        if controller_1.buttonR1.pressing():
+            speed = -100
+        elif controller_1.buttonR2.pressing():
+            speed = 100
+        print(speed)
+        mot_intake.set_velocity(speed)
+        sleep(100)
+
+Thread(loop)
+#endregion intake
 
 def forback():
     mot_lf_s = mot_lb_s = mot_rf_s = mot_rb_s = controller_1.axis3.position()
