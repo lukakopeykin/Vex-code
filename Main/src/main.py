@@ -10,13 +10,13 @@ brain=Brain()
 mot_lf = Motor(Ports.PORT1, GearSetting.RATIO_18_1, True)
 mot_rf = Motor(Ports.PORT10, GearSetting.RATIO_18_1, False)
 mot_lb = Motor(Ports.PORT11, GearSetting.RATIO_18_1, True)
-mot_rb = Motor(Ports.PORT20, GearSetting.RATIO_18_1, False)
+mot_rb = Motor(Ports.PORT3, GearSetting.RATIO_18_1, False)
 mot_intake = Motor(Ports.PORT12, GearSetting.RATIO_18_1, False)
 mot_lift_l = Motor(Ports.PORT5, GearSetting.RATIO_18_1, True)
 mot_lift_r = Motor(Ports.PORT6, GearSetting.RATIO_18_1, False)
 controller_1 = Controller(PRIMARY)
 lift_inert = Inertial(Ports.PORT2)
-drive_inert = Inertial(Ports.PORT3)
+drive_inert = Inertial(Ports.PORT20)
 
 
 
