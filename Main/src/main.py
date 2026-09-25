@@ -5,7 +5,7 @@ import math
 
 # Brain should be defined by default
 brain=Brain()
-# Used ports:1, 2, 3, 5, 6, 10, 11, 12, 20
+# Used ports:1, 6, 11, 12, 16, 17, 18, 19, 20
 # Robot configuration code
 mot_lf = Motor(Ports.PORT12, GearSetting.RATIO_18_1, True)
 mot_rf = Motor(Ports.PORT16, GearSetting.RATIO_18_1, False)
@@ -16,6 +16,7 @@ controller_1 = Controller(PRIMARY)
 lift_inert = Inertial(Ports.PORT11)
 mot_lift_l = Motor(Ports.PORT6, GearSetting.RATIO_18_1, True)
 mot_lift_r = Motor(Ports.PORT20, GearSetting.RATIO_18_1, False)
+drive_inert = Inertial(Ports.PORT1)
 
 
 
@@ -72,11 +73,15 @@ class Togglable():
         self.status = status
     def toggle(self):
         self.status = not self.status
+
 balance = Togglable(False)
 controller_1.buttonY.pressed(balance.toggle)
 
 slow = Togglable(False)
 controller_1.buttonB.pressed(slow.toggle)
+
+backwards = Togglable(False)
+controller_1.buttonX.pressed(backwards.toggle)
 #endregion classes
 
 #region motor config
@@ -246,13 +251,21 @@ def driver_control():
     while True:
         mot_lf_s, mot_lb_s, mot_rf_s, mot_rb_s = valuecheck(*turne(*forback())) # getting motor speeds
 
-        #region slow ##############CHANGE BUTTONS
+        #region slow
         if slow.status:
             mot_lf_s *= 0.5
             mot_lb_s *= 0.5
             mot_rf_s *= 0.5
             mot_rb_s *= 0.5
-        #endregion slow ##############CHANGE BUTTONS
+        #endregion slow
+
+        #region backwards
+        if backwards.status:
+                    mot_lf_s *= -1
+                    mot_lb_s *= -1
+                    mot_rf_s *= -1
+                    mot_rb_s *= -1
+        #endregion backwards
         
         #print(str([mot_lf_s, mot_lb_s, mot_rf_s, mot_rb_s, mot_brings_s, mot_conv_s])+",")
 
