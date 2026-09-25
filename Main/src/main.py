@@ -5,7 +5,7 @@ import math
 
 # Brain should be defined by default
 brain=Brain()
-
+# Used ports:1, 2, 3, 5, 6, 10, 11, 12, 20
 # Robot configuration code
 mot_lf = Motor(Ports.PORT12, GearSetting.RATIO_18_1, True)
 mot_rf = Motor(Ports.PORT16, GearSetting.RATIO_18_1, False)
@@ -108,6 +108,9 @@ mot_intake.spin(FORWARD)
 
 lift_inert.calibrate()
 lift_inert.set_rotation(0, DEGREES)
+lift_inert.calibrate()
+lift_inert.set_rotation(0, DEGREES)
+lift_inert.set_heading(0, DEGREES)
 wait(30, MSEC)
 #endregion motor config
 
@@ -183,7 +186,6 @@ def valuecheck(mot_lf_s, mot_lb_s, mot_rf_s, mot_rb_s):
 #endregion manual driving def
 
 #region autonomous funcs
-"""
 def aut_stop():
     mot_lf.set_velocity(0, PERCENT)
     mot_lb.set_velocity(0, PERCENT)
@@ -191,23 +193,23 @@ def aut_stop():
     mot_rb.set_velocity(0, PERCENT)
 
 def aut_front(b, a=1):
-    if b == -1:
-        mot_lf.set_velocity(SPEED*a, PERCENT)
-        mot_lb.set_velocity(SPEED*a, PERCENT)
-        mot_rf.set_velocity(SPEED*a, PERCENT)
-        mot_rb.set_velocity(SPEED*a, PERCENT)
-        return
     mot_lf.set_velocity(SPEED*a, PERCENT)
     mot_lb.set_velocity(SPEED*a, PERCENT)
     mot_rf.set_velocity(SPEED*a, PERCENT)
     mot_rb.set_velocity(SPEED*a, PERCENT)
+    if b == -1:
+        return
+    """if b == -2:
+        while not something:
+            pass
+        aut_stop()
+        return"""
 
-    
-        
+    wait(b, SECONDS)
     aut_stop()
 
 def aut_turn(b):
-    if inert.orientation(OrientationType.YAW, DEGREES)<b:
+    if drive_inert.orientation(OrientationType.YAW, DEGREES)<b:
         a = 1
     else:
         a = -1
@@ -216,27 +218,29 @@ def aut_turn(b):
     mot_rf.set_velocity(-1*SPEED*a, PERCENT)
     mot_rb.set_velocity(-1*SPEED*a, PERCENT)
     if a == 1:
-        while inert.orientation(OrientationType.YAW, DEGREES)+10<b:
+        while drive_inert.orientation(OrientationType.YAW, DEGREES)+10<b:
             pass
     else:
-        while inert.orientation(OrientationType.YAW, DEGREES)>10+b:
+        while drive_inert.orientation(OrientationType.YAW, DEGREES)-10>b:
             pass
     aut_stop()
-"""
+
 #endregion autonomous funcs 
 
 
 
 #not sure if works needs to be chcked
 def autonomous(): 
-    for line in data1:
+    """for line in data1:
         mot_lf_s, mot_lb_s, mot_rf_s, mot_rb_s, mot_brings_s, mot_conv_s = line
         mot_lf.set_velocity(mot_lf_s,  PERCENT)
         mot_lb.set_velocity(mot_lb_s, PERCENT)
         mot_rf.set_velocity(mot_rf_s, PERCENT)
         mot_rb.set_velocity(mot_rb_s, PERCENT) #setting them to motos
         print(str([mot_lf_s, mot_lb_s, mot_rf_s, mot_rb_s, mot_brings_s, mot_conv_s])+",")
-        wait(0.04, SECONDS)
+        wait(0.04, SECONDS)"""
+    pass
+    
 
 def driver_control():
     while True:
