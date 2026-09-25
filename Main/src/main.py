@@ -124,9 +124,9 @@ def prt():
     while True:
         controller_1.screen.clear_screen()
         controller_1.screen.set_cursor(1, 1)
-        controller_1.screen.print(lift_inert.orientation(OrientationType.PITCH,DEGREES))
+        controller_1.screen.print("BACKWARDS: " + str(backwards.status))
         controller_1.screen.set_cursor(2, 1)
-        controller_1.screen.print("BALANCING: "+ str(balance.status))
+        controller_1.screen.print("BALANCING: " + str(balance.status))
         controller_1.screen.set_cursor(3, 1)
         controller_1.screen.print("SLOW MODE: " + str(slow.status))
 
