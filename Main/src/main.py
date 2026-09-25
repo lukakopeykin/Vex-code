@@ -7,15 +7,15 @@ import math
 brain=Brain()
 
 # Robot configuration code
-mot_lf = Motor(Ports.PORT1, GearSetting.RATIO_18_1, True)
-mot_rf = Motor(Ports.PORT10, GearSetting.RATIO_18_1, False)
-mot_lb = Motor(Ports.PORT11, GearSetting.RATIO_18_1, True)
-mot_rb = Motor(Ports.PORT20, GearSetting.RATIO_18_1, False)
-mot_intake = Motor(Ports.PORT12, GearSetting.RATIO_18_1, False)
+mot_lf = Motor(Ports.PORT12, GearSetting.RATIO_18_1, True)
+mot_rf = Motor(Ports.PORT16, GearSetting.RATIO_18_1, False)
+mot_lb = Motor(Ports.PORT18, GearSetting.RATIO_18_1, True)
+mot_rb = Motor(Ports.PORT17, GearSetting.RATIO_18_1, False)
+mot_intake = Motor(Ports.PORT19, GearSetting.RATIO_18_1, False)
 controller_1 = Controller(PRIMARY)
-lift_inert = Inertial(Ports.PORT2)
-mot_lift_l = Motor(Ports.PORT5, GearSetting.RATIO_18_1, True)
-mot_lift_r = Motor(Ports.PORT6, GearSetting.RATIO_18_1, False)
+lift_inert = Inertial(Ports.PORT11)
+mot_lift_l = Motor(Ports.PORT6, GearSetting.RATIO_18_1, True)
+mot_lift_r = Motor(Ports.PORT20, GearSetting.RATIO_18_1, False)
 
 
 
@@ -156,7 +156,7 @@ def intake():
         elif controller_1.buttonR2.pressing():
             speed = 100
         print(speed)
-        mot_intake.set_velocity(speed)
+        mot_intake.set_velocity(speed, PERCENT)
         sleep(100)
 
 Thread(intake)
