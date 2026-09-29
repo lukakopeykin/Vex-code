@@ -65,8 +65,8 @@ data1 = []
 #endregion data
 
 SPEED = 30
-REFRESH_IN_HERTZ = 300 #--> 5 a second
-REFRESH = 60/REFRESH_IN_HERTZ
+REFRESH_IN_HERTZ = 7 #--> 5 a second
+REFRESH = 1/REFRESH_IN_HERTZ
 
 #region classes
 class Togglable():
@@ -89,10 +89,10 @@ slow = Togglable(False)
 controller_1.buttonB.pressed(slow.toggle)
 
 backwards = Togglable(False)
-controller_1.buttonX.pressed(push_toggle)
+controller_1.buttonX.pressed(backwards.toggle)
 
 push = Togglable(False)
-controller_1.buttonA.pressed(backwards.toggle)
+controller_1.buttonDown.pressed(push_toggle)
 #endregion classes
 
 #region motor config
@@ -142,9 +142,10 @@ Thread(prt)
 
 #region display2
 def prt2():
-    brain.screen.set_font(FontType.PROP30)
+    brain.screen.set_font(FontType.PROP20)
+    brain.screen.set_fill_color(Color.BLUE)
     while True:
-        brain.screen.clear_screen()
+        brain.screen.clear_screen(Color.BLUE)
         brain.screen.set_cursor(1, 1)
         brain.screen.print("BACKWARDS: " + str(backwards.status))
         brain.screen.set_cursor(2, 1)
@@ -154,13 +155,13 @@ def prt2():
         brain.screen.set_cursor(4, 1)
         brain.screen.print("SLOW: " + str(slow.status))
         brain.screen.set_cursor(5, 1)
-        brain.screen.print("TEMP LF: " + str(mot_lf.temperature(PERCENT)) + "TORQ LF: " + str(mot_lf.torque(TorqueUnits.NM)))
+        brain.screen.print("TEMP LF: " + str(mot_lf.temperature(PERCENT)) + "   TORQ LF: " + str(mot_lf.torque(TorqueUnits.NM)))
         brain.screen.set_cursor(6, 1)
-        brain.screen.print("TEMP LB: " + str(mot_lb.temperature(PERCENT)) + "TORQ LF: " + str(mot_lf.torque(TorqueUnits.NM)))
+        brain.screen.print("TEMP LB: " + str(mot_lb.temperature(PERCENT)) + "   TORQ LF: " + str(mot_lf.torque(TorqueUnits.NM)))
         brain.screen.set_cursor(7, 1)
-        brain.screen.print("TEMP RF: " + str(mot_rf.temperature(PERCENT)) + "TORQ LF: " + str(mot_lf.torque(TorqueUnits.NM)))
+        brain.screen.print("TEMP RF: " + str(mot_rf.temperature(PERCENT)) + "   TORQ LF: " + str(mot_lf.torque(TorqueUnits.NM)))
         brain.screen.set_cursor(8, 1)
-        brain.screen.print("TEMP RB: " + str(mot_rb.temperature(PERCENT)) + "TORQ LF: " + str(mot_lf.torque(TorqueUnits.NM)))
+        brain.screen.print("TEMP RB: " + str(mot_rb.temperature(PERCENT)) + "   TORQ LF: " + str(mot_lf.torque(TorqueUnits.NM)))
         brain.screen.set_cursor(9, 1)
         brain.screen.print("BATTERY: " + str(brain.battery.capacity()))
         brain.screen.set_cursor(10, 1)
@@ -197,21 +198,22 @@ def intake():
         elif controller_1.buttonR2.pressing():
             speed = 100
         mot_intake.set_velocity(speed, PERCENT)
-        sleep(100)
+        wait(REFRESH, SECONDS)
 
 Thread(intake)
 #endregion intake
 
+#region manual driving def
 def forback(stat):
     a=1
     if stat: a=-1
     mot_l_s = mot_r_s = controller_1.axis3.position()*a
-    return mot_l_s, mot_r_s, a
+    return mot_l_s, mot_r_s
 #
-def turne(mot_l_s, mot_r_s, a):
+def turne(mot_l_s, mot_r_s):
     ax4 = controller_1.axis4.position()
-    mot_l_s += ax4*a
-    mot_r_s -= ax4*a
+    mot_l_s += ax4
+    mot_r_s -= ax4
     return mot_l_s, mot_r_s
 #
 def valuecheck(mot_l_s, mot_r_s):
@@ -274,8 +276,8 @@ def autonomous():
         print(str([mot_lf_s, mot_lb_s, mot_rf_s, mot_rb_s, mot_brings_s, mot_conv_s])+",")
         wait(0.04, SECONDS)"""
     pass
-    
 
+    
 def driver_control():
     while True:
         mot_l_s, mot_r_s = valuecheck(*turne(*forback(backwards.status))) # getting motor speeds
@@ -295,7 +297,6 @@ def driver_control():
 
         controller_1.screen.set_cursor(1, 1)
         wait(0.04, SECONDS)
-
 
 
 competition = Competition(driver_control, autonomous)
