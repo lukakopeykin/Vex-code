@@ -17,6 +17,7 @@ lift_inert = Inertial(Ports.PORT11)
 mot_lift_l = Motor(Ports.PORT6, GearSetting.RATIO_18_1, True)
 mot_lift_r = Motor(Ports.PORT20, GearSetting.RATIO_18_1, False)
 drive_inert = Inertial(Ports.PORT1)
+cam = AiVision(Ports.PORT2, AiVision.ALL_TAGS)
 
 
 
@@ -74,6 +75,13 @@ class Togglable():
     def toggle(self):
         self.status = not self.status
 
+def push_toggle():
+    mot_lf.set_stopping(HOLD)
+    mot_rf.set_stopping(HOLD)
+    mot_lb.set_stopping(HOLD)
+    mot_rb.set_stopping(HOLD)
+    push.toggle()
+
 balance = Togglable(False)
 controller_1.buttonY.pressed(balance.toggle)
 
@@ -81,7 +89,10 @@ slow = Togglable(False)
 controller_1.buttonB.pressed(slow.toggle)
 
 backwards = Togglable(False)
-controller_1.buttonX.pressed(backwards.toggle)
+controller_1.buttonX.pressed(push_toggle)
+
+push = Togglable(False)
+controller_1.buttonA.pressed(backwards.toggle)
 #endregion classes
 
 #region motor config
@@ -93,13 +104,8 @@ mot_lift_l.set_velocity(0, PERCENT)
 mot_lift_r.set_velocity(0, PERCENT)
 mot_intake.set_velocity(0, PERCENT)
 
-mot_lf.set_stopping(HOLD)
-mot_rf.set_stopping(HOLD)
-mot_lb.set_stopping(HOLD)
-mot_rb.set_stopping(HOLD)
 mot_lift_l.set_stopping(HOLD)
 mot_lift_r.set_stopping(HOLD)
-mot_intake.set_stopping(HOLD)
 
 
 mot_lf.spin(FORWARD)
@@ -128,11 +134,36 @@ def prt():
         controller_1.screen.set_cursor(2, 1)
         controller_1.screen.print("BALANCING: " + str(balance.status))
         controller_1.screen.set_cursor(3, 1)
-        controller_1.screen.print("SLOW MODE: " + str(slow.status))
+        controller_1.screen.print("PUSH: " + str(push.status))
 
         wait(REFRESH/1.5, SECONDS)
 Thread(prt)
 #endregion display
+
+#region display2
+def prt2():
+    while True:
+        brain.screen.clear_screen()
+        brain.screen.set_cursor(1, 1)
+        brain.screen.print("BACKWARDS: " + str(backwards.status))
+        brain.screen.set_cursor(2, 1)
+        brain.screen.print("BALANCING: " + str(balance.status))
+        brain.screen.set_cursor(3, 1)
+        brain.screen.print("PUSH: " + str(push.status))
+        brain.screen.set_cursor(4, 1)
+        brain.screen.print("SLOW: " + str(slow.status))
+        brain.screen.set_cursor(5, 1)
+        brain.screen.print("TEMP LF: " + str(mot_lf.temperature))
+        brain.screen.set_cursor(6, 1)
+        brain.screen.print("TEMP LB: " + str(mot_lb.temperature))
+        brain.screen.set_cursor(7, 1)
+        brain.screen.print("TEMP RF: " + str(mot_rf.temperature))
+        brain.screen.set_cursor(8, 1)
+        brain.screen.print("TEMP RB: " + str(mot_rb.temperature))
+
+        wait(REFRESH/1.5, SECONDS)
+Thread(prt2)
+#endregion display2
 
 #region manual driving def
 
@@ -170,24 +201,22 @@ def intake():
 Thread(intake)
 #endregion intake
 
-def forback():
-    mot_lf_s = mot_lb_s = mot_rf_s = mot_rb_s = controller_1.axis3.position()
-    return mot_lf_s, mot_lb_s, mot_rf_s, mot_rb_s
+def forback(stat):
+    a=1
+    if stat: a=-1
+    mot_l_s = mot_r_s = controller_1.axis3.position()*a
+    return mot_l_s, mot_r_s, a
 #
-def turne(mot_lf_s, mot_lb_s, mot_rf_s, mot_rb_s):
+def turne(mot_l_s, mot_r_s, a):
     ax4 = controller_1.axis4.position()
-    mot_lf_s += ax4
-    mot_lb_s += ax4
-    mot_rf_s -= ax4
-    mot_rb_s -= ax4
-    return mot_lf_s, mot_lb_s, mot_rf_s, mot_rb_s
+    mot_l_s += ax4*a
+    mot_r_s -= ax4*a
+    return mot_l_s, mot_r_s
 #
-def valuecheck(mot_lf_s, mot_lb_s, mot_rf_s, mot_rb_s):
-    mot_lf_s = max(-100, min(mot_lf_s, 100))
-    mot_lb_s = max(-100, min(mot_lb_s, 100))
-    mot_rf_s = max(-100, min(mot_rf_s, 100))
-    mot_rb_s = max(-100, min(mot_rb_s, 100))
-    return mot_lf_s, mot_lb_s, mot_rf_s, mot_rb_s
+def valuecheck(mot_l_s, mot_r_s):
+    mot_l_s = max(-100, min(mot_l_s, 100))
+    mot_r_s = max(-100, min(mot_r_s, 100))
+    return mot_l_s, mot_r_s
 #endregion manual driving def
 
 #region autonomous funcs
@@ -233,7 +262,6 @@ def aut_turn(b):
 #endregion autonomous funcs 
 
 
-
 #not sure if works needs to be chcked
 def autonomous(): 
     """for line in data1:
@@ -249,30 +277,20 @@ def autonomous():
 
 def driver_control():
     while True:
-        mot_lf_s, mot_lb_s, mot_rf_s, mot_rb_s = valuecheck(*turne(*forback())) # getting motor speeds
+        mot_l_s, mot_r_s = valuecheck(*turne(*forback(backwards.status))) # getting motor speeds
 
         #region slow
         if slow.status:
-            mot_lf_s *= 0.5
-            mot_lb_s *= 0.5
-            mot_rf_s *= 0.5
-            mot_rb_s *= 0.5
+            mot_l_s *= 0.5
+            mot_r_s *= 0.5
         #endregion slow
-
-        #region backwards
-        if backwards.status:
-                    mot_lf_s *= -1
-                    mot_lb_s *= -1
-                    mot_rf_s *= -1
-                    mot_rb_s *= -1
-        #endregion backwards
         
         #print(str([mot_lf_s, mot_lb_s, mot_rf_s, mot_rb_s, mot_brings_s, mot_conv_s])+",")
 
-        mot_lf.set_velocity(mot_lf_s,  PERCENT)
-        mot_lb.set_velocity(mot_lb_s, PERCENT)
-        mot_rf.set_velocity(mot_rf_s, PERCENT)
-        mot_rb.set_velocity(mot_rb_s, PERCENT) #setting them to motos
+        mot_lf.set_velocity(mot_l_s,  PERCENT)
+        mot_lb.set_velocity(mot_l_s, PERCENT)
+        mot_rf.set_velocity(mot_r_s, PERCENT)
+        mot_rb.set_velocity(mot_r_s, PERCENT) #setting them to motos
 
         controller_1.screen.set_cursor(1, 1)
         wait(0.04, SECONDS)
