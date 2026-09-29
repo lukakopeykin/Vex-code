@@ -142,6 +142,7 @@ Thread(prt)
 
 #region display2
 def prt2():
+    brain.screen.set_font(FontType.PROP30)
     while True:
         brain.screen.clear_screen()
         brain.screen.set_cursor(1, 1)
@@ -153,14 +154,16 @@ def prt2():
         brain.screen.set_cursor(4, 1)
         brain.screen.print("SLOW: " + str(slow.status))
         brain.screen.set_cursor(5, 1)
-        brain.screen.print("TEMP LF: " + str(mot_lf.temperature))
+        brain.screen.print("TEMP LF: " + str(mot_lf.temperature(PERCENT)) + "TORQ LF: " + str(mot_lf.torque(TorqueUnits.NM)))
         brain.screen.set_cursor(6, 1)
-        brain.screen.print("TEMP LB: " + str(mot_lb.temperature))
+        brain.screen.print("TEMP LB: " + str(mot_lb.temperature(PERCENT)) + "TORQ LF: " + str(mot_lf.torque(TorqueUnits.NM)))
         brain.screen.set_cursor(7, 1)
-        brain.screen.print("TEMP RF: " + str(mot_rf.temperature))
+        brain.screen.print("TEMP RF: " + str(mot_rf.temperature(PERCENT)) + "TORQ LF: " + str(mot_lf.torque(TorqueUnits.NM)))
         brain.screen.set_cursor(8, 1)
-        brain.screen.print("TEMP RB: " + str(mot_rb.temperature))
-
+        brain.screen.print("TEMP RB: " + str(mot_rb.temperature(PERCENT)) + "TORQ LF: " + str(mot_lf.torque(TorqueUnits.NM)))
+        brain.screen.set_cursor(9, 1)
+        brain.screen.print("BATTERY: " + str(brain.battery.capacity()))
+        brain.screen.set_cursor(10, 1)
         wait(REFRESH/1.5, SECONDS)
 Thread(prt2)
 #endregion display2
@@ -174,7 +177,6 @@ def lift():
         deg = lift_inert.orientation(OrientationType.PITCH,DEGREES)
         
         if math.fabs(deg) > 1 and balance.status:
-            print(1)
             mot_lift_r_s = max(-100, min(mot_lift_r_s-deg*2, 100))
             mot_lift_l_s = max(-100, min(mot_lift_l_s+deg*2, 100))
 
@@ -194,7 +196,6 @@ def intake():
             speed = -100
         elif controller_1.buttonR2.pressing():
             speed = 100
-        print(speed)
         mot_intake.set_velocity(speed, PERCENT)
         sleep(100)
 
