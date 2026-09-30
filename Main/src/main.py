@@ -76,10 +76,16 @@ class Togglable():
         self.status = not self.status
 
 def push_toggle():
-    mot_lf.set_stopping(HOLD)
-    mot_rf.set_stopping(HOLD)
-    mot_lb.set_stopping(HOLD)
-    mot_rb.set_stopping(HOLD)
+    if not push.status:
+        mot_lf.set_stopping(HOLD)
+        mot_rf.set_stopping(HOLD)
+        mot_lb.set_stopping(HOLD)
+        mot_rb.set_stopping(HOLD)
+    else: 
+        mot_lf.set_stopping(COAST)
+        mot_rf.set_stopping(COAST)
+        mot_lb.set_stopping(COAST)
+        mot_rb.set_stopping(COAST)
     push.toggle()
 
 balance = Togglable(False)
@@ -147,29 +153,30 @@ def prt2():
     while True:
         brain.screen.clear_screen(Color.BLUE)
         brain.screen.set_cursor(1, 1)
-        brain.screen.print("BACKWARDS: " + str(backwards.status))
-        brain.screen.set_cursor(2, 1)
-        brain.screen.print("BALANCING: " + str(balance.status))
-        brain.screen.set_cursor(3, 1)
-        brain.screen.print("PUSH: " + str(push.status))
-        brain.screen.set_cursor(4, 1)
-        brain.screen.print("SLOW: " + str(slow.status))
-        brain.screen.set_cursor(5, 1)
-        brain.screen.print("TEMP LF: " + str(mot_lf.temperature(PERCENT)) + "   TORQ LF: " + str(mot_lf.torque(TorqueUnits.NM)))
-        brain.screen.set_cursor(6, 1)
-        brain.screen.print("TEMP LB: " + str(mot_lb.temperature(PERCENT)) + "   TORQ LF: " + str(mot_lf.torque(TorqueUnits.NM)))
-        brain.screen.set_cursor(7, 1)
-        brain.screen.print("TEMP RF: " + str(mot_rf.temperature(PERCENT)) + "   TORQ LF: " + str(mot_lf.torque(TorqueUnits.NM)))
-        brain.screen.set_cursor(8, 1)
-        brain.screen.print("TEMP RB: " + str(mot_rb.temperature(PERCENT)) + "   TORQ LF: " + str(mot_lf.torque(TorqueUnits.NM)))
-        brain.screen.set_cursor(9, 1)
         brain.screen.print("BATTERY: " + str(brain.battery.capacity()))
+        brain.screen.set_cursor(2, 1)
+        brain.screen.print("BACKWARDS: " + str(backwards.status))
+        brain.screen.set_cursor(3, 1)
+        brain.screen.print("BALANCING: " + str(balance.status))
+        brain.screen.set_cursor(4, 1)
+        brain.screen.print("PUSH: " + str(push.status))
+        brain.screen.set_cursor(5, 1)
+        brain.screen.print("SLOW: " + str(slow.status))
+        brain.screen.set_cursor(6, 1)
+        brain.screen.print("TEMP LF: " + str(mot_lf.temperature(PERCENT)) + "   TORQ LF: " + str(mot_lf.torque(TorqueUnits.NM)))
+        brain.screen.set_cursor(7, 1)
+        brain.screen.print("TEMP LB: " + str(mot_lb.temperature(PERCENT)) + "   TORQ LF: " + str(mot_lf.torque(TorqueUnits.NM)))
+        brain.screen.set_cursor(8, 1)
+        brain.screen.print("TEMP RF: " + str(mot_rf.temperature(PERCENT)) + "   TORQ LF: " + str(mot_lf.torque(TorqueUnits.NM)))
+        brain.screen.set_cursor(9, 1)
+        brain.screen.print("TEMP RB: " + str(mot_rb.temperature(PERCENT)) + "   TORQ LF: " + str(mot_lf.torque(TorqueUnits.NM)))
         brain.screen.set_cursor(10, 1)
+        brain.screen.print("TEMP LIFT L: " + str(mot_lift_l.temperature(PERCENT)) + "   TORQ LIFT L: " + str(mot_lift_l.torque(TorqueUnits.NM)))
+        brain.screen.set_cursor(11, 1)
+        brain.screen.print("TEMP LIFT R: " + str(mot_lift_r.temperature(PERCENT)) + "   TORQ LIFT R: " + str(mot_lift_r.torque(TorqueUnits.NM)))
         wait(REFRESH/1.5, SECONDS)
 Thread(prt2)
 #endregion display2
-
-#region manual driving def
 
 #region lift
 def lift():
