@@ -5,7 +5,7 @@ import math
 
 # Brain should be defined by default
 brain=Brain()
-# Used ports:1, 6, 11, 12, 16, 17, 18, 19, 20
+# Used ports:1, 2, 6, 11, 12, 13, 16, 17, 18, 19, 20
 # Robot configuration code
 mot_lf = Motor(Ports.PORT12, GearSetting.RATIO_18_1, True)
 mot_rf = Motor(Ports.PORT16, GearSetting.RATIO_18_1, False)
@@ -18,7 +18,9 @@ mot_lift_l = Motor(Ports.PORT6, GearSetting.RATIO_18_1, True)
 mot_lift_r = Motor(Ports.PORT20, GearSetting.RATIO_18_1, False)
 drive_inert = Inertial(Ports.PORT1)
 cam = AiVision(Ports.PORT2, AiVision.ALL_TAGS)
-
+rot_sens = Rotation(Ports.PORT2, False)
+mot_grab = Motor(Ports.PORT13, GearSetting.RATIO_18_1, True)
+mot_grab.set_max_torque(40, PERCENT)
 
 
 # wait for rotation sensor to fully initialize
@@ -99,6 +101,9 @@ controller_1.buttonX.pressed(backwards.toggle)
 
 push = Togglable(False)
 controller_1.buttonDown.pressed(push_toggle)
+
+tilt = Togglable(False)
+controller_1.buttonDown.pressed(tilt.toggle)
 #endregion classes
 
 #region motor config
@@ -210,6 +215,20 @@ def intake():
 Thread(intake)
 #endregion intake
 
+#region tilter
+"""
+def tilter():
+    while True:
+        if tilt.status and not controller_1.buttonR2.pressing() and not controller_1.buttonR1.pressing() and X1 < rot_sens.angle() < Z1:
+            speed = 15
+        elif not tilt.status and not controller_1.buttonR2.pressing() and not controller_1.buttonR1.pressing() and X2 < rot_sens.angle() < Z2:
+            speed = 15
+        mot_intake.set_velocity(speed, PERCENT)
+        wait(REFRESH, SECONDS)
+
+Thread(intake)"""
+#endregion tilter
+
 #region manual driving def
 def forback(stat):
     a=1
@@ -271,7 +290,6 @@ def aut_turn(b):
 
 #endregion autonomous funcs 
 
-
 #not sure if works needs to be chcked
 def autonomous(): 
     """for line in data1:
@@ -284,7 +302,6 @@ def autonomous():
         wait(0.04, SECONDS)"""
     pass
 
-    
 def driver_control():
     while True:
         mot_l_s, mot_r_s = valuecheck(*turne(*forback(backwards.status))) # getting motor speeds
@@ -304,6 +321,5 @@ def driver_control():
 
         controller_1.screen.set_cursor(1, 1)
         wait(0.04, SECONDS)
-
 
 competition = Competition(driver_control, autonomous)
