@@ -90,6 +90,14 @@ def push_toggle():
         mot_rb.set_stopping(COAST)
     push.toggle()
 
+def tilt_toggle():
+    if not push.status:
+        mot_intake.set_stopping(HOLD)
+
+    else: 
+        mot_intake.set_stopping(COAST)
+    tilt.toggle()
+
 balance = Togglable(False)
 controller_1.buttonY.pressed(balance.toggle)
 
@@ -103,7 +111,7 @@ push = Togglable(False)
 controller_1.buttonDown.pressed(push_toggle)
 
 tilt = Togglable(False)
-controller_1.buttonDown.pressed(tilt.toggle)
+controller_1.buttonDown.pressed(tilt_toggle)
 #endregion classes
 
 #region motor config
