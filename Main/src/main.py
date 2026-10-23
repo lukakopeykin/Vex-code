@@ -77,7 +77,8 @@ class Togglable():
         self.status = not self.status
 
 def push_toggle():
-    if not push.status:
+    push.toggle()
+    if push.status:
         mot_lf.set_stopping(HOLD)
         mot_rf.set_stopping(HOLD)
         mot_lb.set_stopping(HOLD)
@@ -87,15 +88,15 @@ def push_toggle():
         mot_rf.set_stopping(COAST)
         mot_lb.set_stopping(COAST)
         mot_rb.set_stopping(COAST)
-    push.toggle()
+    
 
 def tilt_toggle():
-    if not push.status:
+    tilt.toggle()
+    if tilt.status:
         mot_intake.set_stopping(HOLD)
-
     else: 
         mot_intake.set_stopping(COAST)
-    tilt.toggle()
+    
 
 balance = Togglable(False)
 controller_1.buttonY.pressed(balance.toggle)
@@ -113,7 +114,7 @@ tilt = Togglable(False)
 controller_1.buttonLeft.pressed(tilt_toggle)
 #endregion classes
 
-#region motor config
+#region device config
 mot_lf.set_velocity(0, PERCENT)
 mot_lb.set_velocity(0, PERCENT)
 mot_rf.set_velocity(0, PERCENT)
@@ -143,9 +144,10 @@ lift_inert.set_rotation(0, DEGREES)
 lift_inert.calibrate()
 lift_inert.set_rotation(0, DEGREES)
 lift_inert.set_heading(0, DEGREES)
+rot_sens.reset_position()
 
 wait(30, MSEC)
-#endregion motor config
+#endregion device config
 
 #region display
 def prt():
@@ -227,17 +229,17 @@ Thread(intake)
 #endregion intake
 
 #region tilter
-"""
+
 def tilter():
     while True:
-        if tilt.status and not controller_1.buttonR2.pressing() and not controller_1.buttonR1.pressing() and X1 < rot_sens.angle() < Z1:
+        if tilt.status and not controller_1.buttonR2.pressing() and not controller_1.buttonR1.pressing() and 350 < rot_sens.angle() < 10:
             speed = 15
-        elif not tilt.status and not controller_1.buttonR2.pressing() and not controller_1.buttonR1.pressing() and X2 < rot_sens.angle() < Z2:
-            speed = 15
+        #elif not tilt.status and not controller_1.buttonR2.pressing() and not controller_1.buttonR1.pressing() and 210 < rot_sens.angle() < 110:
+            #speed = -15
         mot_intake.set_velocity(speed, PERCENT)
         wait(REFRESH, SECONDS)
 
-Thread(tlter)"""
+Thread(tilter)
 #endregion tilter
 
 #region grabber
