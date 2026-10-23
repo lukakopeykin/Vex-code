@@ -234,9 +234,9 @@ def tilter():
     while True:
         if tilt.status and not controller_1.buttonR2.pressing() and not controller_1.buttonR1.pressing() and 350 < rot_sens.angle() < 10:
             speed = 15
+            mot_intake.set_velocity(speed, PERCENT)
         #elif not tilt.status and not controller_1.buttonR2.pressing() and not controller_1.buttonR1.pressing() and 210 < rot_sens.angle() < 110:
             #speed = -15
-        mot_intake.set_velocity(speed, PERCENT)
         wait(REFRESH, SECONDS)
 
 Thread(tilter)
