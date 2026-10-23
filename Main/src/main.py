@@ -18,7 +18,7 @@ mot_lift_l = Motor(Ports.PORT16, GearSetting.RATIO_18_1, True)
 mot_lift_r = Motor(Ports.PORT10, GearSetting.RATIO_18_1, False)
 drive_inert = Inertial(Ports.PORT1)
 cam = AiVision(Ports.PORT2, AiVision.ALL_TAGS)
-rot_sens = Rotation(Ports.PORT13, False)
+rot_sens = Rotation(Ports.PORT15, False)
 mot_grab = Motor(Ports.PORT12, GearSetting.RATIO_18_1, True)
 
 
@@ -66,7 +66,7 @@ data1 = []
 #endregion data
 
 SPEED = 30
-REFRESH_IN_HERTZ = 7 #--> 5 a second
+REFRESH_IN_HERTZ = 7 #--> 7 a second
 REFRESH = 1/REFRESH_IN_HERTZ
 
 #region classes
@@ -144,7 +144,7 @@ lift_inert.set_rotation(0, DEGREES)
 lift_inert.calibrate()
 lift_inert.set_rotation(0, DEGREES)
 lift_inert.set_heading(0, DEGREES)
-rot_sens.set_position(0, DEGREES)
+rot_sens.reset_position()
 
 wait(30, MSEC)
 #endregion device config
