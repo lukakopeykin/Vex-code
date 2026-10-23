@@ -144,7 +144,7 @@ lift_inert.set_rotation(0, DEGREES)
 lift_inert.calibrate()
 lift_inert.set_rotation(0, DEGREES)
 lift_inert.set_heading(0, DEGREES)
-rot_sens.reset_position()
+rot_sens.set_position(0, DEGREES)
 
 wait(30, MSEC)
 #endregion device config
@@ -171,9 +171,9 @@ def prt2():
     while True:
         brain.screen.clear_screen(Color.BLUE)
         brain.screen.set_cursor(1, 1)
-        brain.screen.print("BATTERY: " + str(brain.battery.capacity()))
+        brain.screen.print("BATTERY: " + str(rot_sens.angle()))#brain.battery.capacity()))
         brain.screen.set_cursor(2, 1)
-        brain.screen.print("BACKWARDS: " + str(backwards.status))
+        brain.screen.print("BACKWARDS: " + str(tilt.status))
         brain.screen.set_cursor(3, 1)
         brain.screen.print("BALANCING: " + str(balance.status))
         brain.screen.set_cursor(4, 1)
@@ -222,25 +222,15 @@ def intake():
             speed = -100
         elif controller_1.buttonR2.pressing():
             speed = 100
+        elif tilt.status and 345 > rot_sens.angle() > 15:
+            speed = -10
+        #elif not tilt.status and not (210 > rot_sens.angle() > 110):
+            #speed = 15
         mot_intake.set_velocity(speed, PERCENT)
         wait(REFRESH, SECONDS)
 
 Thread(intake)
 #endregion intake
-
-#region tilter
-
-def tilter():
-    while True:
-        if tilt.status and not controller_1.buttonR2.pressing() and not controller_1.buttonR1.pressing() and 350 < rot_sens.angle() < 10:
-            speed = 15
-            mot_intake.set_velocity(speed, PERCENT)
-        #elif not tilt.status and not controller_1.buttonR2.pressing() and not controller_1.buttonR1.pressing() and 210 < rot_sens.angle() < 110:
-            #speed = -15
-        wait(REFRESH, SECONDS)
-
-Thread(tilter)
-#endregion tilter
 
 #region grabber
 
