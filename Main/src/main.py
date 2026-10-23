@@ -7,20 +7,19 @@ import math
 brain=Brain()
 # Used ports:1, 2, 6, 11, 12, 13, 16, 17, 18, 19, 20
 # Robot configuration code
-mot_lf = Motor(Ports.PORT12, GearSetting.RATIO_18_1, True)
-mot_rf = Motor(Ports.PORT16, GearSetting.RATIO_18_1, False)
-mot_lb = Motor(Ports.PORT18, GearSetting.RATIO_18_1, True)
+mot_lf = Motor(Ports.PORT20, GearSetting.RATIO_18_1, True)
+mot_rf = Motor(Ports.PORT18, GearSetting.RATIO_18_1, False)
+mot_lb = Motor(Ports.PORT19, GearSetting.RATIO_18_1, True)
 mot_rb = Motor(Ports.PORT17, GearSetting.RATIO_18_1, False)
-mot_intake = Motor(Ports.PORT19, GearSetting.RATIO_18_1, False)
+mot_intake = Motor(Ports.PORT9, GearSetting.RATIO_18_1, False)
 controller_1 = Controller(PRIMARY)
 lift_inert = Inertial(Ports.PORT11)
-mot_lift_l = Motor(Ports.PORT6, GearSetting.RATIO_18_1, True)
-mot_lift_r = Motor(Ports.PORT20, GearSetting.RATIO_18_1, False)
+mot_lift_l = Motor(Ports.PORT16, GearSetting.RATIO_18_1, True)
+mot_lift_r = Motor(Ports.PORT10, GearSetting.RATIO_18_1, False)
 drive_inert = Inertial(Ports.PORT1)
 cam = AiVision(Ports.PORT2, AiVision.ALL_TAGS)
-rot_sens = Rotation(Ports.PORT2, False)
-mot_grab = Motor(Ports.PORT13, GearSetting.RATIO_18_1, True)
-mot_grab.set_max_torque(40, PERCENT)
+rot_sens = Rotation(Ports.PORT13, False)
+mot_grab = Motor(Ports.PORT12, GearSetting.RATIO_18_1, True)
 
 
 # wait for rotation sensor to fully initialize
@@ -111,7 +110,7 @@ push = Togglable(False)
 controller_1.buttonDown.pressed(push_toggle)
 
 tilt = Togglable(False)
-controller_1.buttonDown.pressed(tilt_toggle)
+controller_1.buttonLeft.pressed(tilt_toggle)
 #endregion classes
 
 #region motor config
@@ -122,6 +121,7 @@ mot_rb.set_velocity(0, PERCENT)
 mot_lift_l.set_velocity(0, PERCENT)
 mot_lift_r.set_velocity(0, PERCENT)
 mot_intake.set_velocity(0, PERCENT)
+mot_grab.set_velocity(0, PERCENT)
 
 mot_lift_l.set_stopping(HOLD)
 mot_lift_r.set_stopping(HOLD)
@@ -134,13 +134,16 @@ mot_rb.spin(FORWARD)
 mot_lift_l.spin(FORWARD)
 mot_lift_r.spin(FORWARD)
 mot_intake.spin(FORWARD)
+mot_grab.spin(FORWARD)
 
+mot_grab.set_max_torque(40, PERCENT)
 
 lift_inert.calibrate()
 lift_inert.set_rotation(0, DEGREES)
 lift_inert.calibrate()
 lift_inert.set_rotation(0, DEGREES)
 lift_inert.set_heading(0, DEGREES)
+
 wait(30, MSEC)
 #endregion motor config
 
@@ -234,8 +237,23 @@ def tilter():
         mot_intake.set_velocity(speed, PERCENT)
         wait(REFRESH, SECONDS)
 
-Thread(intake)"""
+Thread(tlter)"""
 #endregion tilter
+
+#region grabber
+
+def grabber():
+    while True:
+        speed = 0
+        if controller_1.buttonL1.pressing():
+            speed = -50
+        elif controller_1.buttonL2.pressing():
+            speed = 50
+        mot_grab.set_velocity(speed, PERCENT)
+        wait(REFRESH, SECONDS)
+
+Thread(grabber)
+#endregion grabber
 
 #region manual driving def
 def forback(stat):
