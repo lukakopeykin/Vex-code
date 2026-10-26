@@ -98,7 +98,7 @@ def tilt_toggle():
         mot_intake.set_stopping(COAST)
     
 
-balance = Togglable(False)
+balance = Togglable(True)
 controller_1.buttonY.pressed(balance.toggle)
 
 slow = Togglable(False)
@@ -106,6 +106,9 @@ controller_1.buttonB.pressed(slow.toggle)
 
 backwards = Togglable(False)
 controller_1.buttonX.pressed(backwards.toggle)
+
+parttime = Togglable(False)
+controller_1.buttonUp.pressed(parttime.toggle)
 
 push = Togglable(False)
 controller_1.buttonDown.pressed(push_toggle)
@@ -115,6 +118,7 @@ controller_1.buttonLeft.pressed(tilt_toggle)
 #endregion classes
 
 #region device config
+#velocity
 mot_lf.set_velocity(0, PERCENT)
 mot_lb.set_velocity(0, PERCENT)
 mot_rf.set_velocity(0, PERCENT)
@@ -124,10 +128,12 @@ mot_lift_r.set_velocity(0, PERCENT)
 mot_intake.set_velocity(0, PERCENT)
 mot_grab.set_velocity(0, PERCENT)
 
+#stopping
 mot_lift_l.set_stopping(HOLD)
 mot_lift_r.set_stopping(HOLD)
+mot_grab.set_stopping(COAST)
 
-
+#spin
 mot_lf.spin(FORWARD)
 mot_lb.spin(FORWARD)
 mot_rf.spin(FORWARD)
@@ -137,8 +143,10 @@ mot_lift_r.spin(FORWARD)
 mot_intake.spin(FORWARD)
 mot_grab.spin(FORWARD)
 
+#max torque
 mot_grab.set_max_torque(40, PERCENT)
 
+#sensors
 lift_inert.calibrate()
 lift_inert.set_rotation(0, DEGREES)
 lift_inert.calibrate()
@@ -166,32 +174,50 @@ Thread(prt)
 
 #region display2
 def prt2():
-    brain.screen.set_font(FontType.PROP20)
+    brain.screen.set_font(FontType.MONO20)
     brain.screen.set_fill_color(Color.BLUE)
+    names = ["lf", "rf", "lb", "rb", "lfl", "lfr", "int", "grb"]
+    motors = [mot_lf, mot_rf, mot_lb, mot_rb, mot_lift_l, mot_lift_r, mot_intake, mot_grab]
     while True:
         brain.screen.clear_screen(Color.BLUE)
-        brain.screen.set_cursor(1, 1)
-        brain.screen.print("BATTERY: " + str(rot_sens.angle()))#brain.battery.capacity()))
+
+        for i in motors:
+            if i.temperature() > 50:
+                brain.screen.clear_screen(Color.RED)
+
         brain.screen.set_cursor(2, 1)
-        brain.screen.print("BACKWARDS: " + str(tilt.status))
+        brain.screen.print("temp:")
         brain.screen.set_cursor(3, 1)
-        brain.screen.print("BALANCING: " + str(balance.status))
+        brain.screen.print("torq:")
+
+        # Row 1: labels (starting after "temp:" which is 5 chars)
+        for i in range(len(names)):
+            brain.screen.set_cursor(1, 6 + i * 5)
+            brain.screen.print(names[i])
+
+        # Row 2: temperatures (aligned under the names)
+        for i in range(len(motors)):
+            brain.screen.set_cursor(2, 6 + i * 5)
+            brain.screen.print(str(round(motors[i].temperature(), 1)))
+
+        # Row 3: torques (rounded to 2 decimals)
+        for i in range(len(motors)):
+            brain.screen.set_cursor(3, 6 + i * 5)
+            brain.screen.print(str(round(motors[i].torque(), 2)))
+
+
         brain.screen.set_cursor(4, 1)
-        brain.screen.print("PUSH: " + str(push.status))
+        brain.screen.print("BATTERY: " + str(brain.battery.capacity()))
         brain.screen.set_cursor(5, 1)
-        brain.screen.print("SLOW: " + str(slow.status))
+        brain.screen.print("BACKWARDS: " + str(backwards.status))
         brain.screen.set_cursor(6, 1)
-        brain.screen.print("TEMP LF: " + str(mot_lf.temperature(PERCENT)) + "   TORQ LF: " + str(mot_lf.torque(TorqueUnits.NM)))
+        brain.screen.print("BALANCING: " + str(balance.status))
         brain.screen.set_cursor(7, 1)
-        brain.screen.print("TEMP LB: " + str(mot_lb.temperature(PERCENT)) + "   TORQ LF: " + str(mot_lf.torque(TorqueUnits.NM)))
+        brain.screen.print("PUSH: " + str(push.status))
         brain.screen.set_cursor(8, 1)
-        brain.screen.print("TEMP RF: " + str(mot_rf.temperature(PERCENT)) + "   TORQ LF: " + str(mot_lf.torque(TorqueUnits.NM)))
+        brain.screen.print("SLOW: " + str(slow.status))
         brain.screen.set_cursor(9, 1)
-        brain.screen.print("TEMP RB: " + str(mot_rb.temperature(PERCENT)) + "   TORQ LF: " + str(mot_lf.torque(TorqueUnits.NM)))
-        brain.screen.set_cursor(10, 1)
-        brain.screen.print("TEMP LIFT L: " + str(mot_lift_l.temperature(PERCENT)) + "   TORQ LIFT L: " + str(mot_lift_l.torque(TorqueUnits.NM)))
-        brain.screen.set_cursor(11, 1)
-        brain.screen.print("TEMP LIFT R: " + str(mot_lift_r.temperature(PERCENT)) + "   TORQ LIFT R: " + str(mot_lift_r.torque(TorqueUnits.NM)))
+        brain.screen.print("TILT: " + str(tilt.status))
         wait(REFRESH/1.5, SECONDS)
 Thread(prt2)
 #endregion display2
@@ -199,7 +225,7 @@ Thread(prt2)
 #region lift
 def lift():
     while True:
-        mot_lift_l_s = mot_lift_r_s = controller_1.axis2.position()*0.8
+        mot_lift_l_s = mot_lift_r_s = controller_1.axis2.position()* -1
         deg = lift_inert.orientation(OrientationType.PITCH,DEGREES)
         
         if math.fabs(deg) > 1 and balance.status:
@@ -222,10 +248,12 @@ def intake():
             speed = -100
         elif controller_1.buttonR2.pressing():
             speed = 100
-        elif tilt.status and 345 > rot_sens.angle() > 15:
-            speed = -10
-        #elif not tilt.status and not (210 > rot_sens.angle() > 110):
-            #speed = 15
+        elif tilt.status and 355 > rot_sens.position()%360 > 5:
+            speed = math.floor(180 / (-1*( rot_sens.position()%360  - 180) + 1) -1)
+            speed = max(-100, min(speed, 100))
+        elif not tilt.status and (210 < rot_sens.position()%360 or rot_sens.position()%360 < 110):
+            speed = -15
+        print(speed)
         mot_intake.set_velocity(speed, PERCENT)
         wait(REFRESH, SECONDS)
 
