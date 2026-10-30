@@ -16,10 +16,14 @@ controller_1 = Controller(PRIMARY)
 lift_inert = Inertial(Ports.PORT11)
 mot_lift_l = Motor(Ports.PORT16, GearSetting.RATIO_18_1, True)
 mot_lift_r = Motor(Ports.PORT10, GearSetting.RATIO_18_1, False)
-drive_inert = Inertial(Ports.PORT1)
-cam = AiVision(Ports.PORT2, AiVision.ALL_TAGS)
+drive_inert = Inertial(Ports.PORT5)
+cam = AiVision(Ports.PORT6, AiVision.ALL_TAGS)
 rot_sens = Rotation(Ports.PORT15, False)
 mot_grab = Motor(Ports.PORT12, GearSetting.RATIO_18_1, True)
+dist_f = Distance(Ports.PORT2)
+dist_l = Distance(Ports.PORT3)
+
+
 
 
 # wait for rotation sensor to fully initialize
@@ -93,7 +97,7 @@ def push_toggle():
 def tilt_toggle():
     tilt.toggle()
     if tilt.status:
-        mot_intake.set_stopping(HOLD)
+        mot_intake.set_stopping(COAST)
     else: 
         mot_intake.set_stopping(COAST)
     
@@ -149,9 +153,9 @@ mot_grab.set_max_torque(40, PERCENT)
 #sensors
 lift_inert.calibrate()
 lift_inert.set_rotation(0, DEGREES)
-lift_inert.calibrate()
-lift_inert.set_rotation(0, DEGREES)
-lift_inert.set_heading(0, DEGREES)
+drive_inert.calibrate()
+drive_inert.set_rotation(0, DEGREES)
+drive_inert.set_heading(0, DEGREES)
 rot_sens.reset_position()
 
 wait(30, MSEC)
@@ -183,7 +187,7 @@ def prt2():
 
         for i in motors:
             if i.temperature() > 50:
-                brain.screen.clear_screen(Color.RED)
+                brain.screen.clear_screen(Color.YELLOW)
 
         brain.screen.set_cursor(2, 1)
         brain.screen.print("temp:")
@@ -249,11 +253,9 @@ def intake():
         elif controller_1.buttonR2.pressing():
             speed = 100
         elif tilt.status and 355 > rot_sens.position()%360 > 5:
-            speed = math.floor(180 / (-1*( rot_sens.position()%360  - 180) + 1) -1)
-            speed = max(-100, min(speed, 100))
+            speed = max(-100, -1*math.floor((360-rot_sens.position()%360)**2/1200))
         elif not tilt.status and (210 < rot_sens.position()%360 or rot_sens.position()%360 < 110):
             speed = -15
-        print(speed)
         mot_intake.set_velocity(speed, PERCENT)
         wait(REFRESH, SECONDS)
 
@@ -266,9 +268,9 @@ def grabber():
     while True:
         speed = 0
         if controller_1.buttonL1.pressing():
-            speed = -50
+            speed = -75
         elif controller_1.buttonL2.pressing():
-            speed = 50
+            speed = 75
         mot_grab.set_velocity(speed, PERCENT)
         wait(REFRESH, SECONDS)
 
@@ -301,20 +303,20 @@ def aut_stop():
     mot_rf.set_velocity(0, PERCENT)
     mot_rb.set_velocity(0, PERCENT)
 
-def aut_front(b, a=1):
+def aut_front(b, a=1, c=0):
     mot_lf.set_velocity(SPEED*a, PERCENT)
     mot_lb.set_velocity(SPEED*a, PERCENT)
     mot_rf.set_velocity(SPEED*a, PERCENT)
     mot_rb.set_velocity(SPEED*a, PERCENT)
-    if b == -1:
+    if b == 0:
         return
-    """if b == -2:
-        while not something:
-            pass
+    if b == 1:
+        while not dist_f.object_distance()*a < c*a:
+            wait(REFRESH, SECONDS)
         aut_stop()
-        return"""
+        return
 
-    wait(b, SECONDS)
+
     aut_stop()
 
 def aut_turn(b):
@@ -328,12 +330,39 @@ def aut_turn(b):
     mot_rb.set_velocity(-1*SPEED*a, PERCENT)
     if a == 1:
         while drive_inert.orientation(OrientationType.YAW, DEGREES)+10<b:
-            pass
+            wait(REFRESH, SECONDS)
     else:
         while drive_inert.orientation(OrientationType.YAW, DEGREES)-10>b:
-            pass
+            wait(REFRESH, SECONDS)
     aut_stop()
 
+def aut_lift(pos):
+    if mot_lift_l.position()<pos:
+        a = 1
+    else:
+        a = -1
+    
+    mot_lift_l.set_velocity(SPEED*a, PERCENT)
+    mot_lift_r.set_velocity(SPEED*a, PERCENT)
+    if a == 1:
+        while mot_lift_l.position()+10<pos:
+            wait(REFRESH, SECONDS)
+    else:
+        while mot_lift_l.position()-10>pos:
+            wait(REFRESH, SECONDS)
+
+    mot_lift_l.set_velocity(0, PERCENT)
+    mot_lift_r.set_velocity(0, PERCENT)
+    
+def aut_claw(a=1):
+    if a == 1:
+        mot_grab.set_velocity(-75)
+    elif a == 0:
+        mot_grab.set_velocity(75)
+        wait(0.5, SECONDS)
+        mot_grab.set_velocity(0)
+
+        
 #endregion autonomous funcs 
 
 #not sure if works needs to be chcked
@@ -346,7 +375,50 @@ def autonomous():
         mot_rb.set_velocity(mot_rb_s, PERCENT) #setting them to motos
         print(str([mot_lf_s, mot_lb_s, mot_rf_s, mot_rb_s, mot_brings_s, mot_conv_s])+",")
         wait(0.04, SECONDS)"""
-    pass
+    aut_claw(1)
+    aut_front(2, -1, 100)#getting away from the wall
+    aut_lift(50)#lifting the lift a bit
+    aut_front(2, 2, 10)#toggling ppossibly a = 2
+    aut_front(2, -1, 600)#getting away
+    aut_turn(90)
+    aut_front(2, 1, 1200)#going towards red tower
+    aut_lift(10)#lowering the pin
+    aut_claw(0)
+    aut_front(2, -1, 2000)#going away from tower
+    aut_turn(0)
+    aut_front(2, -1, 1200)
+    aut_turn(90)
+    aut_front(2, 1, 1200)#going towards a pin # possibly until a sensor o the grabber, then b=3
+    aut_claw(1)
+    aut_lift(50)
+    aut_front(2, 1, 1100)#a bit front
+    aut_front(2, 1, 600)#going to the tower
+    aut_lift(30)#lowering the lift on top of the tower
+    aut_turn(0)
+    aut_lift(50)#lifting the lift on top of the tower
+
+    ### stop of the 15 sec
+
+    aut_front(2, -1, 1200)
+    aut_turn(45)
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 def driver_control():
     while True:
