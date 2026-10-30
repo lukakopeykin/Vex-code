@@ -21,7 +21,8 @@ cam = AiVision(Ports.PORT6, AiVision.ALL_TAGS)
 rot_sens = Rotation(Ports.PORT15, False)
 mot_grab = Motor(Ports.PORT12, GearSetting.RATIO_18_1, True)
 dist_f = Distance(Ports.PORT2)
-dist_l = Distance(Ports.PORT3)
+dist_r = Distance(Ports.PORT3)
+dist_g = Distance(Ports.PORT4)
 
 
 
@@ -308,10 +309,20 @@ def aut_front(b, a=1, c=0):
     mot_lb.set_velocity(SPEED*a, PERCENT)
     mot_rf.set_velocity(SPEED*a, PERCENT)
     mot_rb.set_velocity(SPEED*a, PERCENT)
-    if b == 0:
-        return
     if b == 1:
+        return
+    if b == 2:
         while not dist_f.object_distance()*a < c*a:
+            wait(REFRESH, SECONDS)
+        aut_stop()
+        return
+    if b == 3:
+        while not dist_g.object_distance()*a < c*a:
+            wait(REFRESH, SECONDS)
+        aut_stop()
+        return
+    if b == 4:
+        while not dist_r.object_distance()*a < c*a:
             wait(REFRESH, SECONDS)
         aut_stop()
         return
@@ -376,31 +387,71 @@ def autonomous():
         print(str([mot_lf_s, mot_lb_s, mot_rf_s, mot_rb_s, mot_brings_s, mot_conv_s])+",")
         wait(0.04, SECONDS)"""
     aut_claw(1)
-    aut_front(2, -1, 100)#getting away from the wall
+    aut_front(4, 1, 100)#getting away from the wall
     aut_lift(50)#lifting the lift a bit
-    aut_front(2, 2, 10)#toggling ppossibly a = 2
-    aut_front(2, -1, 600)#getting away
+    aut_front(4, -2, 10)#toggling ppossibly a = 2
+    aut_front(4, 1, 600)#getting away
     aut_turn(90)
     aut_front(2, 1, 1200)#going towards red tower
     aut_lift(10)#lowering the pin
     aut_claw(0)
+    aut_lift(50)
     aut_front(2, -1, 2000)#going away from tower
-    aut_turn(0)
+    aut_turn(180)
     aut_front(2, -1, 1200)
     aut_turn(90)
-    aut_front(2, 1, 1200)#going towards a pin # possibly until a sensor o the grabber, then b=3
+    aut_front(3, 1, 10)#going towards a pin # possibly until a sensor on the grabber, then b=3#b=3 needs configing # ERI TAVALLA!!!!!!!!
+    #PITÄÄ SAADA ALUKS SINNE PINNILLE JA SITTEN VASTA LASKETAAN.........
+    aut_lift(10)
     aut_claw(1)
     aut_lift(50)
     aut_front(2, 1, 1100)#a bit front
+    aut_turn(180)
     aut_front(2, 1, 600)#going to the tower
     aut_lift(30)#lowering the lift on top of the tower
-    aut_turn(0)
+    aut_claw(0)
     aut_lift(50)#lifting the lift on top of the tower
 
     ### stop of the 15 sec
 
     aut_front(2, -1, 1200)
-    aut_turn(45)
+    aut_turn(135)
+    aut_front(3, 1, 10) #napataan pinni
+    aut_lift(10)#ei legit yhtään hajuakaan
+    aut_claw(1)
+    aut_lift(70)#ei legit yhtään hajuakaan
+    aut_turn(180)
+    aut_front(2, 1, 600)
+    aut_turn(270)
+
+
+
+#########SEQUENCE
+    #alkaa resettaus sequence
+    aut_front(1, -1)
+    wait(1, SECONDS) #####HERE RESET
+    aut_stop()
+    drive_inert.set_rotation(0, DEGREES)
+    drive_inert.set_heading(0, DEGREES)
+
+    #reset loppui
+
+    aut_front(4, 1, 800)
+    aut_lift(50)
+    aut_claw(0)
+    aut_lift(70)
+    aut_front(4, -1, 100)
+    aut_lift(10)
+    aut_turn(180)
+    aut_front(2, 1, 60)
+    aut_claw(1)
+    aut_front(2, -1, 450)
+    aut_turn(270)
+
+
+
+    
+    
     
 
 
