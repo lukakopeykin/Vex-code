@@ -16,13 +16,13 @@ controller_1 = Controller(PRIMARY)
 lift_inert = Inertial(Ports.PORT11)
 mot_lift_l = Motor(Ports.PORT16, GearSetting.RATIO_18_1, True)
 mot_lift_r = Motor(Ports.PORT10, GearSetting.RATIO_18_1, False)
-drive_inert = Inertial(Ports.PORT5)
+drive_inert = Inertial(Ports.PORT14)
 cam = AiVision(Ports.PORT6, AiVision.ALL_TAGS)
 rot_sens = Rotation(Ports.PORT15, False)
 mot_grab = Motor(Ports.PORT12, GearSetting.RATIO_18_1, True)
 dist_f = Distance(Ports.PORT2)
 dist_r = Distance(Ports.PORT3)
-dist_g = Distance(Ports.PORT4)
+dist_g = Distance(Ports.PORT13)
 
 
 
